@@ -6,17 +6,26 @@ function App() {
     const [response, setResponse] = useState("");
 
     const handleSend = async () => {
-        const res = await axios.post("http://127.0.0.1:8000/chat/", { message });
-        setResponse(res.data.response);
+        try {
+            const res = await axios.post("http://localhost:8000/chat/", 
+                { message: message },  // Ensure JSON body is correct
+                { headers: { "Content-Type": "application/json" } }  // Explicitly set headers
+            );
+
+            setResponse(res.data.response);
+        } catch (error) {
+            console.error("Error:", error);
+            setResponse("Error communicating with backend");
+        }
     };
 
     return (
         <div>
             <h1>AI Chatbot</h1>
-            <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
+            <input 
+                type="text" 
+                value={message} 
+                onChange={(e) => setMessage(e.target.value)} 
             />
             <button onClick={handleSend}>Send</button>
             <p>Response: {response}</p>

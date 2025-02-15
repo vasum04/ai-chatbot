@@ -9,3 +9,11 @@ services:
       - PYTHONUNBUFFERED=1
     restart: always
 
+  frontend:
+    build: ./frontend/chatbot
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/chatbot:/app
+    depends_on:
+      - backend
