@@ -1,19 +1,24 @@
-# Use Python 3.10 for compatibility
-FROM python:3.10
+# Use a base image
+FROM python:3.11
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy dependencies
+# Copy requirements
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy the source code
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Download necessary NLTK data
+RUN python -c "import nltk; nltk.download('punkt', download_dir='/usr/local/nltk_data')"
+
+# Copy the rest of the application
 COPY . .
 
-# Expose the API port
+# Expose port
 EXPOSE 8000
 
-# Run FastAPI
+# Run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 

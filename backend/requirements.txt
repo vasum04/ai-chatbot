@@ -4,4 +4,4 @@ tensorflow
 numpy
 pandas
 nltk
-
+scikit-learn
