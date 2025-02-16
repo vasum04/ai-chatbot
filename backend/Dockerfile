@@ -11,7 +11,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download necessary NLTK data
-RUN python -c "import nltk; nltk.download('punkt', download_dir='/usr/local/nltk_data')"
+RUN python -c "import nltk; nltk.download('punkt_tab', download_dir='/usr/local/nltk_data')"
+
+ENV NLTK_DATA="/usr/local/nltk_data"
 
 # Copy the rest of the application
 COPY . .

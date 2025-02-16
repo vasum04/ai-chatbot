@@ -24,10 +24,10 @@ os.makedirs(nltk_data_path, exist_ok=True)
 nltk.data.path.append(nltk_data_path)
 
 try:
-    nltk.data.find("tokenizers/punkt")
-    print("✅ 'punkt' tokenizer found!")
+    nltk.data.find("tokenizers/punkt_tab")
+    print("✅ 'punkt_tab' tokenizer found!")
 except LookupError:
-    nltk.download("punkt", download_dir=nltk_data_path)
+    nltk.download("punkt_tab", download_dir=nltk_data_path)
 
 # ✅ Load trained chatbot model
 try:
@@ -42,9 +42,10 @@ class ChatRequest(BaseModel):
 def preprocess_text(message):
     """Convert input text to numerical representation"""
     words = word_tokenize(message.lower())  # Tokenize message
-    numerical_data = np.zeros((1, model.input_shape[1]), dtype=np.float32)  # Create zero array
+    max_length = model.input_shape[1] if model else 10  # Ensure correct input shape
+    numerical_data = np.zeros((1, max_length), dtype=np.float32)
 
-    for j, word in enumerate(words):
+    for j, word in enumerate(words[:max_length]):  # Limit input length
         numerical_data[0, j] = hash(word) % 1000  # Convert words to numerical values
 
     return numerical_data
@@ -52,26 +53,33 @@ def preprocess_text(message):
 @app.post("/chat/")
 def chat_response(request: ChatRequest):
     try:
-        # ✅ Convert text to numerical format
+        if model is None:
+            return {"error": "Model not loaded properly"}
+
         input_data = preprocess_text(request.message)
-    
-        # ✅ Predict response
         predictions = model.predict(input_data)
-        response_index = np.argmax(predictions)
+        response_index = np.argmax(predictions)  # Get the index of the highest$
+        
+        print(f"Model Predictions: {predictions}, Selected Index: {response_index}")  # Debugging output
 
-        responses = [
-            "Hi! How can I help you?",
-            "I'm just a chatbot!",
-            "I am an AI chatbot!",
-            "AI stands for Artificial Intelligence.",
-            "I can answer questions and assist you!"
-        ]
-        return {"response": responses[response_index]}
 
+        response_map = {
+            "hello": "Hi! How are you doing today?",
+            "hi": "Hello! How can I assist you?",
+            "how are you": "I'm just a chatbot, but I'm here to help!",
+            "who are you": "I'm an AI chatbot designed to assist you.",
+            "what is ai": "AI stands for Artificial Intelligence.",
+            "bye": "Goodbye! Have a great day!"
+        }
+
+        message_cleaned = request.message.lower().strip()
+        response = response_map.get(message_cleaned, "I'm sorry, I didn't understand that.")
+
+        return {"response": response}
+    
     except Exception as e:
         return {"error": f"Something went wrong: {str(e)}"}
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
