@@ -10,6 +10,10 @@ COPY requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Ensure required system dependencies are installed for PostgreSQL
+
+RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
+
 # Download necessary NLTK data
 RUN python -c "import nltk; nltk.download('punkt_tab', download_dir='/usr/local/nltk_data')"
 
